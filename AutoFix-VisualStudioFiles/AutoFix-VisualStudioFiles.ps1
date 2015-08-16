@@ -41,28 +41,38 @@ Function Scan-ConfigFiles([System.IO.FileInfo[]] $files)
 
     foreach($file in $files)
     {
-        $original = [xml] (Get-Content $file.FullName)
-        $workingCopy = $original.Clone()
+		Try
+		{
+			$original = [xml] (Get-Content $file.FullName)
+			$workingCopy = $original.Clone()
+		
+			if($workingCopy.configuration.appSettings -ne $null -and $workingCopy.configuration.appSettings.ChildNodes.Count > 1) 
+            {     
+					$sorted = $workingCopy.configuration.appSettings.add | sort { [string]$_.key }
+					$lastChild = $sorted[-1]
+					$sorted[0..($sorted.Length-2)] | foreach {$workingCopy.configuration.appSettings.InsertBefore($_, $lastChild)} | Out-Null
+			}
+			
+			if ($workingCopy.configuration.runtime.assemblyBinding -ne $null -and $workingCopy.configuration.runtime.assemblyBinding.ChildNodes.Count > 1){
+					$sorted = $workingCopy.configuration.runtime.assemblyBinding.dependentAssembly | sort { [string]$_.assemblyIdentity.name }
+					$lastChild = $sorted[-1]
+					$sorted[0..($sorted.Length-2)] | foreach {$workingCopy.configuration.runtime.assemblyBinding.InsertBefore($_,$lastChild)} | Out-Null
+			}
 
-        if ($workingCopy.configuration.appSettings -ne $null){
-            $sorted = $workingCopy.configuration.appSettings.add | sort { [string]$_.key }
-            $lastChild = $sorted[-1]
-            $sorted[0..($sorted.Length-2)] | foreach {$workingCopy.configuration.appSettings.InsertBefore($_, $lastChild)} | Out-Null
-        }
+			$differencesCount = (Compare-Object -ReferenceObject (Select-Xml -Xml $original -XPath "//*") -DifferenceObject (Select-Xml -Xml $workingCopy -XPath "//*")).Length
 
-        if ($workingCopy.configuration.runtime.assemblyBinding -ne $null){
-            $sorted = $workingCopy.configuration.runtime.assemblyBinding.dependentAssembly | sort { [string]$_.assemblyIdentity.name }
-            $lastChild = $sorted[-1]
-            $sorted[0..($sorted.Length-2)] | foreach {$workingCopy.configuration.runtime.assemblyBinding.InsertBefore($_,$lastChild)} | Out-Null
-        }
-
-        $differencesCount = (Compare-Object -ReferenceObject (Select-Xml -Xml $original -XPath "//*") -DifferenceObject (Select-Xml -Xml $workingCopy -XPath "//*")).Length
-
-        if ($differencesCount -ne 0)
-        {
-            $workingCopy.Save($file.FullName) | Out-Null
-            $modifiedfiles += $file.FullName
-        }
+			if ($differencesCount -ne 0)
+			{
+				$workingCopy.Save($file.FullName) | Out-Null
+				$modifiedfiles += $file.FullName
+			}
+		
+		}
+		Catch
+		{
+			$ErrorMessage = $_.Exception.Message
+			Write-Host "Scan-ConfigFiles::: Reorder error en: "  $file.FullName "=>>>" $ErrorMessage
+		}
     }
 
     return $modifiedfiles
