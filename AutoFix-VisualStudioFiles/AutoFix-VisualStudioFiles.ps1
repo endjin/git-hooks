@@ -1,22 +1,23 @@
-﻿<#
+<#
 .SYNOPSIS
- 
+
     Scans the solution folder (the parent of the .git folder) for all app.config, web.config and *.csproj files and
     auto-formats them to minimise the possibility of getting merge conflicts based on the ordering of elements
     within these files.
-
     N.B. Use of this script is entirely at your own risk. We shall not be liable for any damage which may result from using it.
 
 .DESCRIPTION
-    
+
     app.config & web.config files - sorts appSettings elements by key, in alphabetic order, sorts assemblyBinding.dependentAssembly 
     elements alphabetically based on the assemblyIdentity.name attribute
     .csproj files - sorts appSettings elements by key, in alphabetic order, sorts Reference, ProjectReference & Compile elements
 
 .NOTES
+
     File Name  : AutoFix-VisualStudioFiles.ps1
     Author     : Howard van Rooijen
     Requires   : PowerShell v3
+
 .LINK
 
 #>
@@ -88,37 +89,13 @@ Function AutoFix-CsProj([string] $rootDirectory)
         $original = [xml] (Get-Content $file.FullName)
         $workingCopy = $original.Clone()
 
-        foreach($itemGroup in $workingCopy.Project.ItemGroup){
+        foreach($itemGroup in $workingCopy.Project.ItemGroup)
+        {
+            # Sort the ItemGroup elements
+            $sorted = $itemGroup.ChildNodes | sort Name, Include
 
-            # Sort the reference elements
-            if ($itemGroup.Reference -ne $null){
-
-                $sorted = $itemGroup.Reference | sort { [string]$_.Include }
-
-                $itemGroup.RemoveAll() | Out-Null
- 
-                foreach($item in $sorted){
-                    $itemGroup.AppendChild($item) | Out-Null
-                }
-            }
-
-            # Sort the compile elements
-            if ($itemGroup.Compile -ne $null){
-
-                $sorted = $itemGroup.Compile | sort { [string]$_.Include }
-
-                $itemGroup.RemoveAll() | Out-Null
- 
-                foreach($item in $sorted){
-                    $itemGroup.AppendChild($item) | Out-Null
-                }
-            }
-
-            # Sort the project references elements
-            if ($itemGroup.ProjectReference -ne $null){
-
-                $sorted = $itemGroup.ProjectReference | sort { [string]$_.Include }
-
+            if ($itemGroup -isnot [System.String])
+            {
                 $itemGroup.RemoveAll() | Out-Null
  
                 foreach($item in $sorted){
@@ -163,4 +140,3 @@ if ($changedfiles.Count -gt 0)
 }
 
 exit $exitcode
-
