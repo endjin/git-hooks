@@ -9,6 +9,7 @@ For more information please read the original blog post "[Reduce Merge Conflicts
 **Contributors:**
 
 - Paco Rodriguez
+- Omid Rad
 
 ---
 
