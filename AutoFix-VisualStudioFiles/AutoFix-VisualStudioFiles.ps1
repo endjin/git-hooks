@@ -92,9 +92,9 @@ Function AutoFix-CsProj([string] $rootDirectory)
         foreach($itemGroup in $workingCopy.Project.ItemGroup)
         {
             # Sort the ItemGroup elements
-            $sorted = $itemGroup.ChildNodes | sort Name, Include
+            $sorted = $itemGroup.ChildNodes | sort Name, Include -Unique
 
-            if ($itemGroup -isnot [System.String])
+            if ($itemGroup -isnot [System.String]) # skip empty ItemGroups
             {
                 $itemGroup.RemoveAll() | Out-Null
  
