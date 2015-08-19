@@ -57,7 +57,7 @@ Describe "AutoFix-CsProj" {
         $testPath = "TestDrive:\test.csproj"
         Set-Content $testPath -value $originalContent1
         $modifiedFiles = AutoFix-CsProj $testPath
-        $modifiedContent = Get-Content $testPath -Raw | %{$_ -replace "`r",""} 
+        $modifiedContent = Get-Content $testPath -Raw
 
         It "should sort all child elements" {
             $modifiedContent | Should Be $referenceContent1
@@ -96,10 +96,40 @@ Describe "AutoFix-CsProj" {
         $testPath = "TestDrive:\test.csproj"
         Set-Content $testPath -value $originalContent2
         $modifiedFiles = AutoFix-CsProj $testPath
-        $modifiedContent = Get-Content $testPath -Raw | %{$_ -replace "`r",""} 
+        $modifiedContent = Get-Content $testPath -Raw
 
         It "should sort and keep all child elements" {
             $modifiedContent | Should Be $referenceContent2
+        }
+    }
+}
+
+$originalContent3 = @'
+<Project>
+  <ItemGroup>
+    <Compile Include="aaa.cs" />
+    <Compile Include="aaa.cs" />
+  </ItemGroup>
+</Project>
+'@
+
+$referenceContent3 = @'
+<Project>
+  <ItemGroup>
+    <Compile Include="aaa.cs" />
+  </ItemGroup>
+</Project>
+'@
+
+Describe "AutoFix-CsProj" {
+    Context "the csproj contains item groups with duplicate children" {
+        $testPath = "TestDrive:\test.csproj"
+        Set-Content $testPath -value $originalContent3
+        $modifiedFiles = AutoFix-CsProj $testPath
+        $modifiedContent = Get-Content $testPath -Raw
+
+        It "should remove the duplicate item group children" {
+            $modifiedContent | Should Be $referenceContent3
         }
     }
 }
