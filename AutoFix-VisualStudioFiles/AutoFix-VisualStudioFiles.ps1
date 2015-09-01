@@ -47,14 +47,14 @@ Function Scan-ConfigFiles([System.IO.FileInfo[]] $files)
 			$original = [xml] (Get-Content $file.FullName)
 			$workingCopy = $original.Clone()
 		
-			if($workingCopy.configuration.appSettings -ne $null -and $workingCopy.configuration.appSettings.ChildNodes.Count > 1) 
+			if($workingCopy.configuration.appSettings -ne $null -and $workingCopy.configuration.appSettings.ChildNodes.Count -gt 1) 
             {     
 					$sorted = $workingCopy.configuration.appSettings.add | sort { [string]$_.key }
 					$lastChild = $sorted[-1]
 					$sorted[0..($sorted.Length-2)] | foreach {$workingCopy.configuration.appSettings.InsertBefore($_, $lastChild)} | Out-Null
 			}
 			
-			if ($workingCopy.configuration.runtime.assemblyBinding -ne $null -and $workingCopy.configuration.runtime.assemblyBinding.ChildNodes.Count > 1){
+			if ($workingCopy.configuration.runtime.assemblyBinding -ne $null -and $workingCopy.configuration.runtime.assemblyBinding.ChildNodes.Count -gt 1){
 					$sorted = $workingCopy.configuration.runtime.assemblyBinding.dependentAssembly | sort { [string]$_.assemblyIdentity.name }
 					$lastChild = $sorted[-1]
 					$sorted[0..($sorted.Length-2)] | foreach {$workingCopy.configuration.runtime.assemblyBinding.InsertBefore($_,$lastChild)} | Out-Null
