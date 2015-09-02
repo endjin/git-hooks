@@ -55,7 +55,7 @@ Function Scan-ConfigFiles([System.IO.FileInfo[]] $files)
 			}
 			
 			if ($workingCopy.configuration.runtime.assemblyBinding -ne $null -and $workingCopy.configuration.runtime.assemblyBinding.ChildNodes.Count -gt 1){
-					$sorted = $workingCopy.configuration.runtime.assemblyBinding.dependentAssembly | sort { [string]$_.assemblyIdentity.name }
+					$sorted = $workingCopy.configuration.runtime.assemblyBinding.dependentAssembly | sort { [string]$_.assemblyIdentity.name; [string]$_.assemblyIdentity.publicKeyToken }
 					$lastChild = $sorted[-1]
 					$sorted[0..($sorted.Length-2)] | foreach {$workingCopy.configuration.runtime.assemblyBinding.InsertBefore($_,$lastChild)} | Out-Null
 			}

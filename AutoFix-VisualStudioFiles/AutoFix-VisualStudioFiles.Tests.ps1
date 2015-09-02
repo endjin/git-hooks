@@ -133,3 +133,50 @@ Describe "AutoFix-CsProj" {
         }
     }
 }
+
+$originalContent4 = @'
+<configuration>
+  <runtime>
+    <assemblyBinding>
+      <dependentAssembly>
+        <assemblyIdentity name="log4net" publicKeyToken="null" culture="neutral" />
+        <codeBase version="1.2.11.0" href="bin\log4net-nokey\log4net.dll" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="log4net" publicKeyToken="669e0ddf0bb1aa2a" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-1.2.13.0" newVersion="1.2.13.0" />
+      </dependentAssembly>
+    </assemblyBinding>
+  </runtime>
+</configuration>
+'@
+
+$referenceContent4 = @'
+<configuration>
+  <runtime>
+    <assemblyBinding>
+      <dependentAssembly>
+        <assemblyIdentity name="log4net" publicKeyToken="669e0ddf0bb1aa2a" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-1.2.13.0" newVersion="1.2.13.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="log4net" publicKeyToken="null" culture="neutral" />
+        <codeBase version="1.2.11.0" href="bin\log4net-nokey\log4net.dll" />
+      </dependentAssembly>
+    </assemblyBinding>
+  </runtime>
+</configuration>
+'@
+
+Describe "AutoFix-WebConfig" {
+    Context "the web.config contains multiple bindingRedirects with equal name" {
+        $testPath = "TestDrive:\web.config"
+        Set-Content $testPath -value $originalContent4
+        $modifiedFiles = AutoFix-WebConfig $testPath
+        $modifiedContent = Get-Content $testPath -Raw
+
+        It "should sort the duplicate bindingRedirect by name and publicKeyToken" {
+            $modifiedContent | Should Be $referenceContent4
+        }
+    }
+}
