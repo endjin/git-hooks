@@ -180,3 +180,40 @@ Describe "AutoFix-WebConfig" {
         }
     }
 }
+
+$originalContent5 = @'
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="ccc" xml:space="preserve">
+    <value>ccc</value>
+  </data>
+  <data name="aaa" xml:space="preserve">
+    <value>aaa</value>
+  </data>
+</root>
+'@
+
+$referenceContent5 = @'
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="aaa" xml:space="preserve">
+    <value>aaa</value>
+  </data>
+  <data name="ccc" xml:space="preserve">
+    <value>ccc</value>
+  </data>
+</root>
+'@
+
+Describe "AutoFix-Resx" {
+    Context "the resx contains multiple data with different name" {
+        $testPath = "TestDrive:\Strings.resx"
+        Set-Content $testPath -value $originalContent5
+        $modifiedFiles = AutoFix-Resx $testPath
+        $modifiedContent = Get-Content $testPath -Raw
+
+        It "should sort the data by name" {
+            $modifiedContent | Should Be $referenceContent5
+        }
+    }
+}
