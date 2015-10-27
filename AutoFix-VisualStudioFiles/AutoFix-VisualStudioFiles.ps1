@@ -116,6 +116,43 @@ Function AutoFix-CsProj([string] $rootDirectory)
     return $modifiedfiles
 }
 
+Function AutoFix-Resx([string] $rootDirectory)
+{
+    $files = Get-ChildItem -Path $rootDirectory -Filter *.resx -Recurse
+    $modifiedfiles = @()
+
+	foreach($file in $files)
+    {
+		Try
+		{
+			$original = [xml] (Get-Content $file.FullName)
+			$workingCopy = $original.Clone()
+
+			if($workingCopy.root -ne $null -and $workingCopy.root.data.Count -gt 1)
+            {
+				$sorted = $workingCopy.root.data | sort { [string]$_.name }
+				$lastChild = $sorted[-1]
+				$sorted[0..($sorted.Length-2)] | foreach {$workingCopy.root.InsertBefore($_, $lastChild)} | Out-Null
+			}
+
+			$differencesCount = (Compare-Object -ReferenceObject (Select-Xml -Xml $original -XPath "//*") -DifferenceObject (Select-Xml -Xml $workingCopy -XPath "//*")).Length
+
+			if ($differencesCount -ne 0)
+			{
+				$workingCopy.Save($file.FullName) | Out-Null
+				$modifiedfiles += $file.FullName
+			}
+		}
+		Catch
+		{
+			$ErrorMessage = $_.Exception.Message
+			Write-Host "AutoFix-Resx::: Reorder error en: "  $file.FullName "=>>>" $ErrorMessage
+		}
+    }
+
+    return $modifiedfiles
+}
+
 $rootDirectory = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "\..\..\"
 
 $exitCode = 0;
@@ -124,6 +161,7 @@ $changedfiles = @()
 $changedfiles += AutoFix-AppConfig($rootDirectory)
 $changedfiles += AutoFix-CsProj($rootDirectory)
 $changedfiles += AutoFix-WebConfig($rootDirectory)
+$changedfiles += AutoFix-Resx($rootDirectory)
 
 if ($changedfiles.Count -gt 0)
 {
