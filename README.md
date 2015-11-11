@@ -11,6 +11,7 @@ For more information please read the original blog post "[Reduce Merge Conflicts
 - Paco Rodriguez
 - Omid Rad
 - Martin Meixger
+- Laurent Kempe 
 
 ---
 
