@@ -217,3 +217,42 @@ Describe "AutoFix-Resx" {
         }
     }
 }
+
+$originalContent6 = @'
+<Project>
+<ItemGroup>
+<None Update="a_unique_file">
+  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+</None>
+<None Update="another_unique_file">
+  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+</None>
+</ItemGroup>
+</Project>
+'@
+
+$referenceContent6 = @'
+<Project>
+<ItemGroup>
+<None Update="a_unique_file">
+  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+</None>
+<None Update="another_unique_file">
+  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+</None>
+</ItemGroup>
+</Project>
+'@
+
+Describe "AutoFix-CsProj" {
+    Context "the csproj contains item groups with duplicate children" {
+        $testPath = "TestDrive:\test.csproj"
+        Set-Content $testPath -value $originalContent6
+        $modifiedFiles = AutoFix-CsProj $testPath
+        $modifiedContent = Get-Content $testPath -Raw
+
+        It "should remain as it is" {
+            $modifiedContent | Should Be $referenceContent6
+        }
+    }
+}
